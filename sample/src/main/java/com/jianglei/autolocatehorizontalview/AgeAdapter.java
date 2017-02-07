@@ -3,7 +3,6 @@ package com.jianglei.autolocatehorizontalview;
 import android.content.Context;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +26,6 @@ public class AgeAdapter extends RecyclerView.Adapter<AgeAdapter.AgeViewHolder> i
     @Override
     public AgeViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         view = LayoutInflater.from(context).inflate(R.layout.item_age,parent,false);
-        Log.d("jianglei","parednt:");
         return new AgeViewHolder(view);
     }
 
