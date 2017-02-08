@@ -8,6 +8,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 
 /**
  * Created by jianglei on 2/1/17.
@@ -21,12 +22,16 @@ public class AutoLocateHorizontalView extends RecyclerView {
     /**
      * 初始时选中的位置
      */
-    private int initPos=2;
+    private int initPos=3;
 
-    private boolean isAllowedAutoScroll;
     private int deltaX;
     private WrapperAdapter adapter;
     private LinearLayoutManager linearLayoutManager;
+    private boolean isInit;
+    /**
+     * 当前被选中的位置
+     */
+    private int selectPos;
     public AutoLocateHorizontalView(Context context) {
         super(context);
     }
@@ -41,20 +46,44 @@ public class AutoLocateHorizontalView extends RecyclerView {
     }
 
     private void init() {
+        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                if(isInit) {
+                    linearLayoutManager.scrollToPositionWithOffset(0, -initPos * (adapter.getItemWidth()));
+                    isInit = false;
+                }
+            }
+        });
     }
 
 
     @Override
     public void setAdapter(Adapter adapter) {
         this.adapter = new WrapperAdapter(adapter,getContext(),8);
+        adapter.registerAdapterDataObserver(new AdapterDataObserver() {
+
+            @Override
+            public void onItemRangeInserted(int positionStart, int itemCount) {
+                super.onItemRangeInserted(positionStart, itemCount);
+                if(positionStart < selectPos){
+
+                }
+            }
+
+            @Override
+            public void onItemRangeRemoved(int positionStart, int itemCount) {
+                super.onItemRangeRemoved(positionStart, itemCount);
+            }
+        });
+        deltaX = 0;
         if(linearLayoutManager == null) {
             linearLayoutManager = new LinearLayoutManager(getContext());
         }
         linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        linearLayoutManager.scrollToPositionWithOffset(0,-initPos*(this.adapter.getItemWidth()));
-        Log.d("longyi","first:"+(this.adapter.getItemWidth()));
         super.setLayoutManager(linearLayoutManager);
         super.setAdapter(this.adapter);
+        isInit = true;
     }
 
     @Override
@@ -68,9 +97,8 @@ public class AutoLocateHorizontalView extends RecyclerView {
     @Override
     public void onScrollStateChanged(int state) {
         super.onScrollStateChanged(state);
-/*
+
         if(state == SCROLL_STATE_IDLE){
-            Log.d("jianglei","scroll:"+deltaX+" itemWidth:"+adapter.getItemWidth());
             if(adapter == null){
                 return;
             }
@@ -80,21 +108,26 @@ public class AutoLocateHorizontalView extends RecyclerView {
                 //此时adapter还没有准备好，忽略此次调用
                 return;
             }
-            int lastPos = (deltaX-initPos*itemWidth)/itemWidth;
             //超出上个item的位置
-            int overLastPosOffset = deltaX - (lastPos*itemWidth);
-            Log.d("jianglei","lastPos:"+lastPos+"  overLastPosOffset:"+overLastPosOffset);
+            int overLastPosOffset = deltaX % itemWidth;
             if(overLastPosOffset == 0){
                 //刚好处于一个item选中位置，无需滑动偏移纠正
-            }else if(overLastPosOffset <= itemWidth/2){
-                //所处位置超过了上一个item的选中位置，但更靠近上一个item，向左纠正
+            }else if(Math.abs(overLastPosOffset) <= itemWidth/2){
                 scrollBy(-overLastPosOffset,0);
-            }else{
+            }else if(overLastPosOffset > 0){
                 scrollBy((itemWidth-overLastPosOffset),0);
+            }else{
+                scrollBy(-(itemWidth+overLastPosOffset),0);
             }
+            if(deltaX > 0) {
+                selectPos=(deltaX) / itemWidth + initPos;
+            }else{
+                selectPos= initPos + (deltaX) /itemWidth;
+            }
+            Log.d("jianglei","deltax:"+deltaX+" curPos:"+selectPos+"  overLastPosOffset:"+overLastPosOffset+"  itemWidth:"+itemWidth);
         }
 
-*/
+
     }
 
     @Override

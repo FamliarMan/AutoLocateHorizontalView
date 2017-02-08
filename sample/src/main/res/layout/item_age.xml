@@ -12,5 +12,6 @@
         android:gravity="center"
         android:layout_height="wrap_content"
         tools:text="23"
+        android:textColor="#ffffff"
         />
 </LinearLayout>

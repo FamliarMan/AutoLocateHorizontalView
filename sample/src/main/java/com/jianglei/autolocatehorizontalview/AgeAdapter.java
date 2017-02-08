@@ -10,6 +10,8 @@ import android.widget.TextView;
 
 import com.jianglei.view.AutoLocateHorizontalView;
 
+import java.util.List;
+
 /**
  * Created by jianglei on 2/4/17.
  */
@@ -18,9 +20,10 @@ public class AgeAdapter extends RecyclerView.Adapter<AgeAdapter.AgeViewHolder> i
     private Context context;
     private View view;
     int[]colors = new int[]{Color.RED,Color.BLACK,Color.BLUE};
-    String[]ages = new String[]{"12","13","14","15","16","17","18","19","20","21","22","23","24"};
-    public AgeAdapter(Context context){
+    private List<String> ages;
+    public AgeAdapter(Context context,List<String>ages){
         this.context = context;
+        this.ages = ages;
     }
 
     @Override
@@ -31,13 +34,13 @@ public class AgeAdapter extends RecyclerView.Adapter<AgeAdapter.AgeViewHolder> i
 
     @Override
     public void onBindViewHolder(AgeViewHolder holder, int position) {
-        holder.tvAge.setText(ages[position]);
+        holder.tvAge.setText(ages.get(position));
         holder.tvAge.setBackgroundColor(colors[position%3]);
     }
 
     @Override
     public int getItemCount() {
-        return  ages.length;
+        return  ages.size();
     }
 
     @Override
