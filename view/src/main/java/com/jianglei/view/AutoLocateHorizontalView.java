@@ -18,20 +18,22 @@ public class AutoLocateHorizontalView extends RecyclerView {
     /**
      * 一个屏幕中显示多少个item，必须为奇数
      */
-    private int itemCount;
+    private int itemCount = 8;
     /**
      * 初始时选中的位置
      */
-    private int initPos=3;
+    private int initPos = 0;
 
     private int deltaX;
-    private WrapperAdapter adapter;
+    private WrapperAdapter wrapAdapter;
+    private Adapter adapter;
     private LinearLayoutManager linearLayoutManager;
     private boolean isInit;
     /**
      * 当前被选中的位置
      */
-    private int selectPos;
+    private int selectPos = initPos;
+
     public AutoLocateHorizontalView(Context context) {
         super(context);
     }
@@ -49,46 +51,84 @@ public class AutoLocateHorizontalView extends RecyclerView {
         getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                if(isInit) {
-                    linearLayoutManager.scrollToPositionWithOffset(0, -initPos * (adapter.getItemWidth()));
+                if (isInit) {
+                    if(initPos >= adapter.getItemCount()){
+                        initPos = adapter.getItemCount()-1;
+                    }
+                    linearLayoutManager.scrollToPositionWithOffset(0, -initPos * (wrapAdapter.getItemWidth()));
                     isInit = false;
                 }
             }
         });
     }
 
+    /**
+     * 设置初始化时选中的位置
+     * @param initPos 初始位置，如果位置超过了item的数量则默认选中最后一项item
+     */
+    private void setInitPos(int initPos){
+        this.initPos = initPos;
+    }
+
+    /**
+     * 设置每次显示多少个item
+     * @param itemCount 必须为奇数，否则默认会设置成小于它的最大奇数
+     */
+    private void setItemCount(int itemCount){
+        if(itemCount % 2 ==0){
+           this.itemCount = itemCount -1;
+        }
+        this.itemCount = itemCount;
+    }
+
+    /**
+     * 删除item后偏移距离可能需要重新计算，从而保证selectPos的正确
+     * @param adapter
+     */
+    private void correctDeltax(Adapter adapter) {
+        if (adapter.getItemCount() <= selectPos) {
+            deltaX -= wrapAdapter.getItemWidth() * (selectPos - adapter.getItemCount() + 1);
+        }
+    }
 
     @Override
-    public void setAdapter(Adapter adapter) {
-        this.adapter = new WrapperAdapter(adapter,getContext(),8);
+    public void setAdapter(final Adapter adapter) {
+        this.adapter = adapter;
+        this.wrapAdapter = new WrapperAdapter(adapter, getContext(), itemCount);
         adapter.registerAdapterDataObserver(new AdapterDataObserver() {
+
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                correctDeltax(adapter);
+            }
 
             @Override
             public void onItemRangeInserted(int positionStart, int itemCount) {
                 super.onItemRangeInserted(positionStart, itemCount);
-                if(positionStart < selectPos){
-
-                }
+                wrapAdapter.notifyItemRangeInserted(positionStart + 1, itemCount);
             }
 
             @Override
             public void onItemRangeRemoved(int positionStart, int itemCount) {
                 super.onItemRangeRemoved(positionStart, itemCount);
+                correctDeltax(adapter);
+                wrapAdapter.notifyItemRangeRemoved(positionStart + 1, itemCount);
             }
         });
         deltaX = 0;
-        if(linearLayoutManager == null) {
+        if (linearLayoutManager == null) {
             linearLayoutManager = new LinearLayoutManager(getContext());
         }
         linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         super.setLayoutManager(linearLayoutManager);
-        super.setAdapter(this.adapter);
+        super.setAdapter(this.wrapAdapter);
         isInit = true;
     }
 
     @Override
     public void setLayoutManager(LayoutManager layout) {
-        if(!(layout instanceof LinearLayoutManager)){
+        if (!(layout instanceof LinearLayoutManager)) {
             throw new IllegalStateException("Here must be LinearLayoutManager!");
         }
         this.linearLayoutManager = (LinearLayoutManager) layout;
@@ -98,33 +138,33 @@ public class AutoLocateHorizontalView extends RecyclerView {
     public void onScrollStateChanged(int state) {
         super.onScrollStateChanged(state);
 
-        if(state == SCROLL_STATE_IDLE){
-            if(adapter == null){
+        if (state == SCROLL_STATE_IDLE) {
+            if (wrapAdapter == null) {
                 return;
             }
-            int itemWidth = adapter.getItemWidth();
-            int headerFooterWidth = adapter.getHeaderFooterWidth();
-            if(itemWidth == 0 || headerFooterWidth == 0){
+            int itemWidth = wrapAdapter.getItemWidth();
+            int headerFooterWidth = wrapAdapter.getHeaderFooterWidth();
+            if (itemWidth == 0 || headerFooterWidth == 0) {
                 //此时adapter还没有准备好，忽略此次调用
                 return;
             }
             //超出上个item的位置
             int overLastPosOffset = deltaX % itemWidth;
-            if(overLastPosOffset == 0){
+            if (overLastPosOffset == 0) {
                 //刚好处于一个item选中位置，无需滑动偏移纠正
-            }else if(Math.abs(overLastPosOffset) <= itemWidth/2){
-                scrollBy(-overLastPosOffset,0);
-            }else if(overLastPosOffset > 0){
-                scrollBy((itemWidth-overLastPosOffset),0);
-            }else{
-                scrollBy(-(itemWidth+overLastPosOffset),0);
+            } else if (Math.abs(overLastPosOffset) <= itemWidth / 2) {
+                scrollBy(-overLastPosOffset, 0);
+            } else if (overLastPosOffset > 0) {
+                scrollBy((itemWidth - overLastPosOffset), 0);
+            } else {
+                scrollBy(-(itemWidth + overLastPosOffset), 0);
             }
-            if(deltaX > 0) {
-                selectPos=(deltaX) / itemWidth + initPos;
-            }else{
-                selectPos= initPos + (deltaX) /itemWidth;
+            if (deltaX > 0) {
+                selectPos = (deltaX) / itemWidth + initPos;
+            } else {
+                selectPos = initPos + (deltaX) / itemWidth;
             }
-            Log.d("jianglei","deltax:"+deltaX+" curPos:"+selectPos+"  overLastPosOffset:"+overLastPosOffset+"  itemWidth:"+itemWidth);
+            Log.d("jianglei", "deltax:" + deltaX + " curPos:" + selectPos + "  overLastPosOffset:" + overLastPosOffset + "  itemWidth:" + itemWidth);
         }
 
 
@@ -218,9 +258,10 @@ public class AutoLocateHorizontalView extends RecyclerView {
             return headerFooterWidth;
         }
 
-        public int getItemWidth(){
+        public int getItemWidth() {
             return itemWidth;
         }
+
         class HeaderFooterViewHolder extends RecyclerView.ViewHolder {
             public View headOrFooter;
 
