@@ -1,17 +1,16 @@
 package com.jianglei.autolocatehorizontalview;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.jianglei.view.AutoLocateHorizontalView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
@@ -41,7 +40,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         recyclerView.setLayoutManager(linearLayoutManager);
+        recyclerView.setOnScrollPositionChangedListener(new AutoLocateHorizontalView.OnScrollPositionChangedListener() {
+            @Override
+            public void scrollPositionChanged(int pos) {
+                Toast.makeText(MainActivity.this,"pos:"+pos,Toast.LENGTH_SHORT).show();
+            }
+        });
+        recyclerView.setInitPos(5);
         recyclerView.setAdapter(ageAdapter);
+
     }
 
     @Override
@@ -49,6 +56,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()){
             case R.id.btn_add:
                 int pos = Integer.valueOf(etPos.getText().toString());
+                if(pos > ageList.size()-1){
+                    Toast.makeText(MainActivity.this,"位置设置太大，字符串会越界哦",Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 String age = etAge.getText().toString();
                 ageList.add(pos,age);
                 ageAdapter.notifyItemInserted(pos);
@@ -56,6 +67,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.btn_remove:
                 int pos1 = Integer.valueOf(etPos.getText().toString());
+                if(pos1 > ageList.size()-1){
+                    Toast.makeText(MainActivity.this,"位置设置太大，字符串会越界哦",Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 ageList.remove(pos1);
                 ageAdapter.notifyItemRangeRemoved(pos1,1);
                 //ageAdapter.notifyDataSetChanged();

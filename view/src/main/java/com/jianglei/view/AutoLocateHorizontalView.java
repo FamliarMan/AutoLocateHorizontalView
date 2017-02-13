@@ -18,7 +18,7 @@ public class AutoLocateHorizontalView extends RecyclerView {
     /**
      * 一个屏幕中显示多少个item，必须为奇数
      */
-    private int itemCount = 8;
+    private int itemCount = 7;
     /**
      * 初始时选中的位置
      */
@@ -29,6 +29,8 @@ public class AutoLocateHorizontalView extends RecyclerView {
     private Adapter adapter;
     private LinearLayoutManager linearLayoutManager;
     private boolean isInit;
+    private OnScrollPositionChangedListener listener;
+    private boolean isFirstPosChanged = true;        //刚初始化时是否触发位置改变的监听
     /**
      * 当前被选中的位置
      */
@@ -52,8 +54,11 @@ public class AutoLocateHorizontalView extends RecyclerView {
             @Override
             public void onGlobalLayout() {
                 if (isInit) {
-                    if(initPos >= adapter.getItemCount()){
-                        initPos = adapter.getItemCount()-1;
+                    if (initPos >= adapter.getItemCount()) {
+                        initPos = adapter.getItemCount() - 1;
+                    }
+                    if (isFirstPosChanged && listener != null) {
+                        listener.scrollPositionChanged(initPos);
                     }
                     linearLayoutManager.scrollToPositionWithOffset(0, -initPos * (wrapAdapter.getItemWidth()));
                     isInit = false;
@@ -64,25 +69,28 @@ public class AutoLocateHorizontalView extends RecyclerView {
 
     /**
      * 设置初始化时选中的位置
+     *
      * @param initPos 初始位置，如果位置超过了item的数量则默认选中最后一项item
      */
-    private void setInitPos(int initPos){
+    public void setInitPos(int initPos) {
         this.initPos = initPos;
     }
 
     /**
      * 设置每次显示多少个item
+     *
      * @param itemCount 必须为奇数，否则默认会设置成小于它的最大奇数
      */
-    private void setItemCount(int itemCount){
-        if(itemCount % 2 ==0){
-           this.itemCount = itemCount -1;
+    private void setItemCount(int itemCount) {
+        if (itemCount % 2 == 0) {
+            this.itemCount = itemCount - 1;
         }
         this.itemCount = itemCount;
     }
 
     /**
      * 删除item后偏移距离可能需要重新计算，从而保证selectPos的正确
+     *
      * @param adapter
      */
     private void correctDeltax(Adapter adapter) {
@@ -164,7 +172,9 @@ public class AutoLocateHorizontalView extends RecyclerView {
             } else {
                 selectPos = initPos + (deltaX) / itemWidth;
             }
-            Log.d("jianglei", "deltax:" + deltaX + " curPos:" + selectPos + "  overLastPosOffset:" + overLastPosOffset + "  itemWidth:" + itemWidth);
+            if (listener != null) {
+                listener.scrollPositionChanged(selectPos);
+            }
         }
 
 
@@ -279,5 +289,13 @@ public class AutoLocateHorizontalView extends RecyclerView {
          * 获取item的根布局
          */
         View getItemView();
+    }
+
+    public interface OnScrollPositionChangedListener {
+        void scrollPositionChanged(int pos);
+    }
+
+    public void setOnScrollPositionChangedListener(OnScrollPositionChangedListener listener) {
+        this.listener = listener;
     }
 }
