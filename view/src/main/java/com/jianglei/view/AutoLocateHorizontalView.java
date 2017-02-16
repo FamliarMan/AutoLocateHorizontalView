@@ -186,7 +186,7 @@ public class AutoLocateHorizontalView extends RecyclerView {
         deltaX += dx;
     }
 
-    static class WrapperAdapter extends RecyclerView.Adapter {
+    class WrapperAdapter extends RecyclerView.Adapter {
         private Context context;
         private RecyclerView.Adapter adapter;
         private int itemCount;
@@ -222,7 +222,6 @@ public class AutoLocateHorizontalView extends RecyclerView {
                 view.setLayoutParams(params);
                 return new HeaderFooterViewHolder(view);
             }
-
             ViewHolder holder = adapter.onCreateViewHolder(parent, viewType);
             itemView = ((IAutoLocateHorizontalView) adapter).getItemView();
             int width = parent.getMeasuredWidth() / itemCount;
