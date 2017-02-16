@@ -29,8 +29,9 @@ public class AutoLocateHorizontalView extends RecyclerView {
     private Adapter adapter;
     private LinearLayoutManager linearLayoutManager;
     private boolean isInit;
-    private OnScrollPositionChangedListener listener;
+    private OnSelectedPositionChangedListener listener;
     private boolean isFirstPosChanged = true;        //刚初始化时是否触发位置改变的监听
+    private int oldSelectedPos = initPos;   //记录上次选中的位置
     /**
      * 当前被选中的位置
      */
@@ -58,7 +59,7 @@ public class AutoLocateHorizontalView extends RecyclerView {
                         initPos = adapter.getItemCount() - 1;
                     }
                     if (isFirstPosChanged && listener != null) {
-                        listener.scrollPositionChanged(initPos);
+                        listener.selectedPositionChanged(initPos);
                     }
                     linearLayoutManager.scrollToPositionWithOffset(0, -initPos * (wrapAdapter.getItemWidth()));
                     isInit = false;
@@ -74,6 +75,8 @@ public class AutoLocateHorizontalView extends RecyclerView {
      */
     public void setInitPos(int initPos) {
         this.initPos = initPos;
+        selectPos = initPos;
+        oldSelectedPos = initPos;
     }
 
     /**
@@ -94,8 +97,13 @@ public class AutoLocateHorizontalView extends RecyclerView {
      * @param adapter
      */
     private void correctDeltax(Adapter adapter) {
+        int oldSelectedPos = selectPos;
         if (adapter.getItemCount() <= selectPos) {
             deltaX -= wrapAdapter.getItemWidth() * (selectPos - adapter.getItemCount() + 1);
+        }
+        calculateSelectedPos();
+        if(selectPos != oldSelectedPos){
+            listener.selectedPositionChanged(selectPos);
         }
     }
 
@@ -167,13 +175,12 @@ public class AutoLocateHorizontalView extends RecyclerView {
             } else {
                 scrollBy(-(itemWidth + overLastPosOffset), 0);
             }
-            if (deltaX > 0) {
-                selectPos = (deltaX) / itemWidth + initPos;
-            } else {
-                selectPos = initPos + (deltaX) / itemWidth;
-            }
+             calculateSelectedPos();
+            wrapAdapter.notifyItemChanged(oldSelectedPos+1);
+            wrapAdapter.notifyItemChanged(selectPos+1);
+            oldSelectedPos = selectPos;
             if (listener != null) {
-                listener.scrollPositionChanged(selectPos);
+                listener.selectedPositionChanged(selectPos);
             }
         }
 
@@ -184,6 +191,16 @@ public class AutoLocateHorizontalView extends RecyclerView {
     public void onScrolled(int dx, int dy) {
         super.onScrolled(dx, dy);
         deltaX += dx;
+        calculateSelectedPos();
+    }
+
+    private void calculateSelectedPos(){
+        int itemWidth = wrapAdapter.getItemWidth();
+        if (deltaX > 0) {
+            selectPos = (deltaX) / itemWidth + initPos;
+        } else {
+            selectPos = initPos + (deltaX) / itemWidth;
+        }
     }
 
     class WrapperAdapter extends RecyclerView.Adapter {
@@ -239,6 +256,11 @@ public class AutoLocateHorizontalView extends RecyclerView {
         public void onBindViewHolder(ViewHolder holder, int position) {
             if (!isHeaderOrFooter(position)) {
                 adapter.onBindViewHolder(holder, position - 1);
+                if(selectPos == position-1) {
+                    ((IAutoLocateHorizontalView) adapter).onViewSelected(true,position-1, holder);
+                }else{
+                    ((IAutoLocateHorizontalView) adapter).onViewSelected(false,position-1, holder);
+                }
             }
         }
 
@@ -288,13 +310,24 @@ public class AutoLocateHorizontalView extends RecyclerView {
          * 获取item的根布局
          */
         View getItemView();
+
+        /**
+         * 当item被选中时会触发这个回调，可以修改被选中时的样式
+         * @param isSelected 是否被选中
+         * @param pos 当前view的位置
+         * @param holder
+         */
+        void onViewSelected(boolean isSelected,int pos, ViewHolder holder);
     }
 
-    public interface OnScrollPositionChangedListener {
-        void scrollPositionChanged(int pos);
+    /***
+     * 选中位置改变时的监听
+     */
+    public interface OnSelectedPositionChangedListener {
+        void selectedPositionChanged(int pos);
     }
 
-    public void setOnScrollPositionChangedListener(OnScrollPositionChangedListener listener) {
+    public void setOnSelectedPositionChangedListener(OnSelectedPositionChangedListener listener) {
         this.listener = listener;
     }
 }

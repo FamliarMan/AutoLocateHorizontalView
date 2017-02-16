@@ -3,6 +3,7 @@ package com.jianglei.autolocatehorizontalview;
 import android.content.Context;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +20,6 @@ import java.util.List;
 public class AgeAdapter extends RecyclerView.Adapter<AgeAdapter.AgeViewHolder> implements AutoLocateHorizontalView.IAutoLocateHorizontalView {
     private Context context;
     private View view;
-    int[]colors = new int[]{Color.RED,Color.BLACK,Color.BLUE};
     private List<String> ages;
     public AgeAdapter(Context context,List<String>ages){
         this.context = context;
@@ -35,7 +35,6 @@ public class AgeAdapter extends RecyclerView.Adapter<AgeAdapter.AgeViewHolder> i
     @Override
     public void onBindViewHolder(AgeViewHolder holder, int position) {
         holder.tvAge.setText(ages.get(position));
-        holder.tvAge.setBackgroundColor(colors[position%3]);
     }
 
     @Override
@@ -48,9 +47,18 @@ public class AgeAdapter extends RecyclerView.Adapter<AgeAdapter.AgeViewHolder> i
         return view;
     }
 
+    @Override
+    public void onViewSelected(boolean isSelected,int pos, RecyclerView.ViewHolder holder) {
+        if(isSelected) {
+            ((AgeViewHolder) holder).tvAge.setTextSize(20);
+        }else{
+            ((AgeViewHolder) holder).tvAge.setTextSize(14);
+        }
+    }
+
     static class AgeViewHolder extends RecyclerView.ViewHolder{
-        public TextView tvAge;
-        public AgeViewHolder(View itemView) {
+        TextView tvAge;
+        AgeViewHolder(View itemView) {
             super(itemView);
             tvAge = (TextView)itemView.findViewById(R.id.tv_age);
         }
