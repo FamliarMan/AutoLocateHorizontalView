@@ -74,6 +74,9 @@ public class AutoLocateHorizontalView extends RecyclerView {
      * @param initPos 初始位置，如果位置超过了item的数量则默认选中最后一项item
      */
     public void setInitPos(int initPos) {
+        if(adapter == null){
+            throw new RuntimeException("This method should be called before setAdapter()!");
+        }
         this.initPos = initPos;
         selectPos = initPos;
         oldSelectedPos = initPos;
@@ -84,11 +87,15 @@ public class AutoLocateHorizontalView extends RecyclerView {
      *
      * @param itemCount 必须为奇数，否则默认会设置成小于它的最大奇数
      */
-    private void setItemCount(int itemCount) {
+    public void setItemCount(int itemCount) {
+        if(adapter == null){
+            throw new RuntimeException("This method should be called before setAdapter()!");
+        }
         if (itemCount % 2 == 0) {
             this.itemCount = itemCount - 1;
+        }else {
+            this.itemCount = itemCount;
         }
-        this.itemCount = itemCount;
     }
 
     /**
@@ -97,16 +104,43 @@ public class AutoLocateHorizontalView extends RecyclerView {
      * @param adapter
      */
     private void correctDeltax(Adapter adapter) {
-        int oldSelectedPos = selectPos;
         if (adapter.getItemCount() <= selectPos) {
             deltaX -= wrapAdapter.getItemWidth() * (selectPos - adapter.getItemCount() + 1);
         }
         calculateSelectedPos();
-        if(selectPos != oldSelectedPos){
+    }
+
+    /**
+     * 删除时选中的数据发生改变，要重新回调方法
+     * @param startPos
+     */
+    private void reCallListenerWhenRemove(int startPos){
+        if(startPos <= selectPos && listener != null){
+            correctDeltax(adapter);
+            listener.selectedPositionChanged(selectPos);
+        }else{
+            correctDeltax(adapter);
+        }
+    }
+
+    /**
+     * 添加数据时选中的数据发生改变，要重新回调方法
+     * @param startPos
+     */
+    private void reCallListenerWhenAdd(int startPos){
+        if(startPos <= selectPos && listener != null){
             listener.selectedPositionChanged(selectPos);
         }
     }
 
+    /**
+     * 当使用整体刷新时要重新回调方法
+     */
+    private void reCallListenerWhenChanged(){
+        if( listener != null){
+            listener.selectedPositionChanged(selectPos);
+        }
+    }
     @Override
     public void setAdapter(final Adapter adapter) {
         this.adapter = adapter;
@@ -116,20 +150,20 @@ public class AutoLocateHorizontalView extends RecyclerView {
             @Override
             public void onChanged() {
                 super.onChanged();
-                correctDeltax(adapter);
+                wrapAdapter.notifyDataSetChanged();
+                reCallListenerWhenChanged();
             }
 
             @Override
             public void onItemRangeInserted(int positionStart, int itemCount) {
-                super.onItemRangeInserted(positionStart, itemCount);
-                wrapAdapter.notifyItemRangeInserted(positionStart + 1, itemCount);
+                wrapAdapter.notifyDataSetChanged();
+                reCallListenerWhenAdd(positionStart);
             }
 
             @Override
             public void onItemRangeRemoved(int positionStart, int itemCount) {
-                super.onItemRangeRemoved(positionStart, itemCount);
-                correctDeltax(adapter);
-                wrapAdapter.notifyItemRangeRemoved(positionStart + 1, itemCount);
+                wrapAdapter.notifyDataSetChanged();
+                reCallListenerWhenRemove(positionStart);
             }
         });
         deltaX = 0;
@@ -145,7 +179,7 @@ public class AutoLocateHorizontalView extends RecyclerView {
     @Override
     public void setLayoutManager(LayoutManager layout) {
         if (!(layout instanceof LinearLayoutManager)) {
-            throw new IllegalStateException("Here must be LinearLayoutManager!");
+            throw new IllegalStateException("The LayoutManager here must be LinearLayoutManager!");
         }
         this.linearLayoutManager = (LinearLayoutManager) layout;
     }
@@ -175,9 +209,9 @@ public class AutoLocateHorizontalView extends RecyclerView {
             } else {
                 scrollBy(-(itemWidth + overLastPosOffset), 0);
             }
-             calculateSelectedPos();
-            wrapAdapter.notifyItemChanged(oldSelectedPos+1);
-            wrapAdapter.notifyItemChanged(selectPos+1);
+            calculateSelectedPos();
+            wrapAdapter.notifyItemChanged(oldSelectedPos + 1);
+            wrapAdapter.notifyItemChanged(selectPos + 1);
             oldSelectedPos = selectPos;
             if (listener != null) {
                 listener.selectedPositionChanged(selectPos);
@@ -194,7 +228,7 @@ public class AutoLocateHorizontalView extends RecyclerView {
         calculateSelectedPos();
     }
 
-    private void calculateSelectedPos(){
+    private void calculateSelectedPos() {
         int itemWidth = wrapAdapter.getItemWidth();
         if (deltaX > 0) {
             selectPos = (deltaX) / itemWidth + initPos;
@@ -256,10 +290,10 @@ public class AutoLocateHorizontalView extends RecyclerView {
         public void onBindViewHolder(ViewHolder holder, int position) {
             if (!isHeaderOrFooter(position)) {
                 adapter.onBindViewHolder(holder, position - 1);
-                if(selectPos == position-1) {
-                    ((IAutoLocateHorizontalView) adapter).onViewSelected(true,position-1, holder);
-                }else{
-                    ((IAutoLocateHorizontalView) adapter).onViewSelected(false,position-1, holder);
+                if (selectPos == position - 1) {
+                    ((IAutoLocateHorizontalView) adapter).onViewSelected(true, position - 1, holder);
+                } else {
+                    ((IAutoLocateHorizontalView) adapter).onViewSelected(false, position - 1, holder);
                 }
             }
         }
@@ -278,6 +312,8 @@ public class AutoLocateHorizontalView extends RecyclerView {
             return adapter.getItemViewType(position - 1);
         }
 
+
+
         private boolean isHeaderOrFooter(int pos) {
             if (pos == 0 || pos == getItemCount() - 1) {
                 return true;
@@ -294,13 +330,13 @@ public class AutoLocateHorizontalView extends RecyclerView {
         }
 
         class HeaderFooterViewHolder extends RecyclerView.ViewHolder {
-            public View headOrFooter;
 
-            public HeaderFooterViewHolder(View itemView) {
+            HeaderFooterViewHolder(View itemView) {
                 super(itemView);
-                headOrFooter = itemView;
             }
         }
+
+
 
     }
 
@@ -313,11 +349,12 @@ public class AutoLocateHorizontalView extends RecyclerView {
 
         /**
          * 当item被选中时会触发这个回调，可以修改被选中时的样式
+         *
          * @param isSelected 是否被选中
-         * @param pos 当前view的位置
+         * @param pos        当前view的位置
          * @param holder
          */
-        void onViewSelected(boolean isSelected,int pos, ViewHolder holder);
+        void onViewSelected(boolean isSelected, int pos, ViewHolder holder);
     }
 
     /***

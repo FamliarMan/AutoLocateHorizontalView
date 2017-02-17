@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(MainActivity.this, "pos:" + pos, Toast.LENGTH_SHORT).show();
             }
         });
-        recyclerView.setInitPos(5);
+        recyclerView.setInitPos(3);
         recyclerView.setAdapter(ageAdapter);
 
     }
@@ -74,8 +74,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     return;
                 }
                 ageList.add(pos, age);
-                ageAdapter.notifyItemInserted(pos);
-                //ageAdapter.notifyDataSetChanged();
+                //ageAdapter.notifyItemInserted(pos);
+                ageAdapter.notifyDataSetChanged();
                 break;
             case R.id.btn_remove:
                 String posStr1 = etPos.getText().toString();
