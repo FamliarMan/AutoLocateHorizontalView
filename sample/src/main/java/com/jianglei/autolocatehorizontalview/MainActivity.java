@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Toast.makeText(MainActivity.this, "年龄没有设置", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                int pos = Integer.valueOf(etPos.getText().toString());
+                int pos = Integer.parseInt(etPos.getText().toString());
                 if (pos > ageList.size() - 1) {
                     Toast.makeText(MainActivity.this, "位置设置太大，数组会越界哦", Toast.LENGTH_SHORT).show();
                     return;
@@ -83,13 +83,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Toast.makeText(MainActivity.this, "删除的位置没有设置", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                int pos1 = Integer.valueOf(etPos.getText().toString());
+                int pos1 = Integer.parseInt(etPos.getText().toString());
                 if (pos1 > ageList.size() - 1) {
                     Toast.makeText(MainActivity.this, "位置设置太大，数组会越界哦", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 ageList.remove(pos1);
                 ageAdapter.notifyItemRangeRemoved(pos1, 1);
+                break;
+            default:
                 break;
         }
     }
