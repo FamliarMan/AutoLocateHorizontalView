@@ -55,4 +55,11 @@
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:text="删除" />
+    <Button
+        android:id="@+id/btn_another_sample"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:text="另外一个例子"
+        android:layout_height="40dp" />
 </LinearLayout>

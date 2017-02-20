@@ -48,7 +48,7 @@ public class AgeAdapter extends RecyclerView.Adapter<AgeAdapter.AgeViewHolder> i
     }
 
     @Override
-    public void onViewSelected(boolean isSelected,int pos, RecyclerView.ViewHolder holder) {
+    public void onViewSelected(boolean isSelected,int pos, RecyclerView.ViewHolder holder,int itemWidth) {
         if(isSelected) {
             ((AgeViewHolder) holder).tvAge.setTextSize(20);
         }else{

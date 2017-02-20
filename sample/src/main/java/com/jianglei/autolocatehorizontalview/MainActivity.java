@@ -1,5 +1,6 @@
 package com.jianglei.autolocatehorizontalview;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -32,6 +33,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         etPos = (EditText) findViewById(R.id.et_pos);
         Button btnAdd = (Button) findViewById(R.id.btn_add);
         Button btnRemove = (Button) findViewById(R.id.btn_remove);
+        Button btnAnother = (Button) findViewById(R.id.btn_another_sample);
+        btnAnother.setOnClickListener(this);
         btnAdd.setOnClickListener(this);
         btnRemove.setOnClickListener(this);
         ageList = new ArrayList<>();
@@ -90,6 +93,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 ageList.remove(pos1);
                 ageAdapter.notifyItemRangeRemoved(pos1, 1);
+                break;
+            case R.id.btn_another_sample:
+                Intent intent  = new Intent(MainActivity.this,BarActivity.class);
+                startActivity(intent);
                 break;
             default:
                 break;

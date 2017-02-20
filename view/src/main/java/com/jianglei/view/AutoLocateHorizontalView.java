@@ -69,12 +69,12 @@ public class AutoLocateHorizontalView extends RecyclerView {
     }
 
     /**
-     * 设置初始化时选中的位置
+     * 设置初始化时选中的位置,该方法必须在{@link AutoLocateHorizontalView#setAdapter(android.support.v7.widget.RecyclerView.Adapter) }之前调用
      *
      * @param initPos 初始位置，如果位置超过了item的数量则默认选中最后一项item
      */
     public void setInitPos(int initPos) {
-        if(adapter == null){
+        if(adapter != null){
             throw new RuntimeException("This method should be called before setAdapter()!");
         }
         this.initPos = initPos;
@@ -83,12 +83,12 @@ public class AutoLocateHorizontalView extends RecyclerView {
     }
 
     /**
-     * 设置每次显示多少个item
+     * 设置每次显示多少个item,该方法必须在{@link AutoLocateHorizontalView#setAdapter(android.support.v7.widget.RecyclerView.Adapter) }之前调用
      *
      * @param itemCount 必须为奇数，否则默认会设置成小于它的最大奇数
      */
     public void setItemCount(int itemCount) {
-        if(adapter == null){
+        if(adapter != null){
             throw new RuntimeException("This method should be called before setAdapter()!");
         }
         if (itemCount % 2 == 0) {
@@ -291,9 +291,9 @@ public class AutoLocateHorizontalView extends RecyclerView {
             if (!isHeaderOrFooter(position)) {
                 adapter.onBindViewHolder(holder, position - 1);
                 if (selectPos == position - 1) {
-                    ((IAutoLocateHorizontalView) adapter).onViewSelected(true, position - 1, holder);
+                    ((IAutoLocateHorizontalView) adapter).onViewSelected(true, position - 1, holder,itemWidth);
                 } else {
-                    ((IAutoLocateHorizontalView) adapter).onViewSelected(false, position - 1, holder);
+                    ((IAutoLocateHorizontalView) adapter).onViewSelected(false, position - 1, holder,itemWidth);
                 }
             }
         }
@@ -353,8 +353,9 @@ public class AutoLocateHorizontalView extends RecyclerView {
          * @param isSelected 是否被选中
          * @param pos        当前view的位置
          * @param holder
+         * @param itemWidth 当前整个item的宽度
          */
-        void onViewSelected(boolean isSelected, int pos, ViewHolder holder);
+        void onViewSelected(boolean isSelected, int pos, ViewHolder holder,int itemWidth);
     }
 
     /***
