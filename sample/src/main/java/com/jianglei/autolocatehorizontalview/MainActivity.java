@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(MainActivity.this, "pos:" + pos, Toast.LENGTH_SHORT).show();
             }
         });
-        recyclerView.setInitPos(3);
+        recyclerView.setInitPos(5);
         recyclerView.setAdapter(ageAdapter);
 
     }

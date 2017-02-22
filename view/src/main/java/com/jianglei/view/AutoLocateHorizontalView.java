@@ -210,6 +210,7 @@ public class AutoLocateHorizontalView extends RecyclerView {
                 scrollBy(-(itemWidth + overLastPosOffset), 0);
             }
             calculateSelectedPos();
+            //此处通知刷新是为了重新绘制之前被选中的位置以及刚刚被选中的位置
             wrapAdapter.notifyItemChanged(oldSelectedPos + 1);
             wrapAdapter.notifyItemChanged(selectPos + 1);
             oldSelectedPos = selectPos;
