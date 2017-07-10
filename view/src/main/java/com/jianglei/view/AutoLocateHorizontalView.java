@@ -237,6 +237,9 @@ public class AutoLocateHorizontalView extends RecyclerView {
     }
 
     public void moveToPosition(int position) {
+        if(position < 0 || position > adapter.getItemCount() - 1){
+            throw new IllegalArgumentException("Your position should be from 0 to "+(adapter.getItemCount()-1));
+        }
         oldMoveX = 0;
         isMoveFinished = false;
         int itemWidth = wrapAdapter.getItemWidth();
