@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.Scroller;
 
 /**
  * Created by jianglei on 2/1/17.
@@ -37,6 +38,15 @@ public class AutoLocateHorizontalView extends RecyclerView {
      */
     private int selectPos = initPos;
 
+    private Scroller mScroller;
+
+    /**
+     * 当要调用moveToPosition()方法时要先记录已经移动了多少位置
+     */
+    private int oldMoveX;
+
+    private boolean isMoveFinished;
+
     public AutoLocateHorizontalView(Context context) {
         super(context);
     }
@@ -51,6 +61,7 @@ public class AutoLocateHorizontalView extends RecyclerView {
     }
 
     private void init() {
+        mScroller = new Scroller(getContext());
         getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -74,7 +85,7 @@ public class AutoLocateHorizontalView extends RecyclerView {
      * @param initPos 初始位置，如果位置超过了item的数量则默认选中最后一项item
      */
     public void setInitPos(int initPos) {
-        if(adapter != null){
+        if (adapter != null) {
             throw new RuntimeException("This method should be called before setAdapter()!");
         }
         this.initPos = initPos;
@@ -88,12 +99,12 @@ public class AutoLocateHorizontalView extends RecyclerView {
      * @param itemCount 必须为奇数，否则默认会设置成小于它的最大奇数
      */
     public void setItemCount(int itemCount) {
-        if(adapter != null){
+        if (adapter != null) {
             throw new RuntimeException("This method should be called before setAdapter()!");
         }
         if (itemCount % 2 == 0) {
             this.itemCount = itemCount - 1;
-        }else {
+        } else {
             this.itemCount = itemCount;
         }
     }
@@ -112,23 +123,25 @@ public class AutoLocateHorizontalView extends RecyclerView {
 
     /**
      * 删除时选中的数据发生改变，要重新回调方法
+     *
      * @param startPos
      */
-    private void reCallListenerWhenRemove(int startPos){
-        if(startPos <= selectPos && listener != null){
+    private void reCallListenerWhenRemove(int startPos) {
+        if (startPos <= selectPos && listener != null) {
             correctDeltax(adapter);
             listener.selectedPositionChanged(selectPos);
-        }else{
+        } else {
             correctDeltax(adapter);
         }
     }
 
     /**
      * 添加数据时选中的数据发生改变，要重新回调方法
+     *
      * @param startPos
      */
-    private void reCallListenerWhenAdd(int startPos){
-        if(startPos <= selectPos && listener != null){
+    private void reCallListenerWhenAdd(int startPos) {
+        if (startPos <= selectPos && listener != null) {
             listener.selectedPositionChanged(selectPos);
         }
     }
@@ -136,11 +149,12 @@ public class AutoLocateHorizontalView extends RecyclerView {
     /**
      * 当使用整体刷新时要重新回调方法
      */
-    private void reCallListenerWhenChanged(){
-        if( listener != null){
+    private void reCallListenerWhenChanged() {
+        if (listener != null) {
             listener.selectedPositionChanged(selectPos);
         }
     }
+
     @Override
     public void setAdapter(final Adapter adapter) {
         this.adapter = adapter;
@@ -222,6 +236,39 @@ public class AutoLocateHorizontalView extends RecyclerView {
 
     }
 
+    public void moveToPosition(int position) {
+        oldMoveX = 0;
+        isMoveFinished = false;
+        int itemWidth = wrapAdapter.getItemWidth();
+        if (position != selectPos) {
+            int deltx = (position - selectPos) * itemWidth;
+            mScroller.startScroll(getScrollX(), getScrollY(), deltx, 0);
+            postInvalidate();
+        }
+    }
+
+    @Override
+    public void computeScroll() {
+        super.computeScroll();
+        if (mScroller.computeScrollOffset()) {
+            int x = mScroller.getCurrX() - oldMoveX;
+            oldMoveX += x;
+            scrollBy(x, 0);
+        } else if (mScroller.isFinished()) {
+            //此处通知刷新是为了重新绘制之前被选中的位置以及刚刚被选中的位置
+            if (isMoveFinished) {
+                return;
+            }
+            wrapAdapter.notifyItemChanged(oldSelectedPos + 1);
+            wrapAdapter.notifyItemChanged(selectPos + 1);
+            oldSelectedPos = selectPos;
+            if (listener != null) {
+                listener.selectedPositionChanged(selectPos);
+            }
+            isMoveFinished = true;
+        }
+    }
+
     @Override
     public void onScrolled(int dx, int dy) {
         super.onScrolled(dx, dy);
@@ -292,9 +339,9 @@ public class AutoLocateHorizontalView extends RecyclerView {
             if (!isHeaderOrFooter(position)) {
                 adapter.onBindViewHolder(holder, position - 1);
                 if (selectPos == position - 1) {
-                    ((IAutoLocateHorizontalView) adapter).onViewSelected(true, position - 1, holder,itemWidth);
+                    ((IAutoLocateHorizontalView) adapter).onViewSelected(true, position - 1, holder, itemWidth);
                 } else {
-                    ((IAutoLocateHorizontalView) adapter).onViewSelected(false, position - 1, holder,itemWidth);
+                    ((IAutoLocateHorizontalView) adapter).onViewSelected(false, position - 1, holder, itemWidth);
                 }
             }
         }
@@ -312,7 +359,6 @@ public class AutoLocateHorizontalView extends RecyclerView {
             }
             return adapter.getItemViewType(position - 1);
         }
-
 
 
         private boolean isHeaderOrFooter(int pos) {
@@ -338,7 +384,6 @@ public class AutoLocateHorizontalView extends RecyclerView {
         }
 
 
-
     }
 
 
@@ -354,9 +399,9 @@ public class AutoLocateHorizontalView extends RecyclerView {
          * @param isSelected 是否被选中
          * @param pos        当前view的位置
          * @param holder
-         * @param itemWidth 当前整个item的宽度
+         * @param itemWidth  当前整个item的宽度
          */
-        void onViewSelected(boolean isSelected, int pos, ViewHolder holder,int itemWidth);
+        void onViewSelected(boolean isSelected, int pos, ViewHolder holder, int itemWidth);
     }
 
     /***

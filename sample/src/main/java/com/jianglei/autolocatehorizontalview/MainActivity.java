@@ -23,20 +23,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     EditText etPos;
     EditText etAge;
     private AgeAdapter ageAdapter;
+    private AutoLocateHorizontalView  mContent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        AutoLocateHorizontalView recyclerView = (AutoLocateHorizontalView) findViewById(R.id.recyleview);
+        mContent = (AutoLocateHorizontalView) findViewById(R.id.recyleview);
         etAge = (EditText) findViewById(R.id.et_value);
         etPos = (EditText) findViewById(R.id.et_pos);
         Button btnAdd = (Button) findViewById(R.id.btn_add);
         Button btnRemove = (Button) findViewById(R.id.btn_remove);
         Button btnAnother = (Button) findViewById(R.id.btn_another_sample);
+        Button btnMove = (Button)findViewById(R.id.btn_move);
         btnAnother.setOnClickListener(this);
         btnAdd.setOnClickListener(this);
         btnRemove.setOnClickListener(this);
+        btnMove.setOnClickListener(this);
         ageList = new ArrayList<>();
         for (String age : ages) {
             ageList.add(age);
@@ -44,15 +47,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ageAdapter = new AgeAdapter(this, ageList);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerView.setOnSelectedPositionChangedListener(new AutoLocateHorizontalView.OnSelectedPositionChangedListener() {
+        mContent.setLayoutManager(linearLayoutManager);
+        mContent.setOnSelectedPositionChangedListener(new AutoLocateHorizontalView.OnSelectedPositionChangedListener() {
             @Override
             public void selectedPositionChanged(int pos) {
                 Toast.makeText(MainActivity.this, "pos:" + pos, Toast.LENGTH_SHORT).show();
             }
         });
-        recyclerView.setInitPos(5);
-        recyclerView.setAdapter(ageAdapter);
+        mContent.setInitPos(5);
+        mContent.setAdapter(ageAdapter);
 
     }
 
@@ -97,6 +100,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btn_another_sample:
                 Intent intent  = new Intent(MainActivity.this,BarActivity.class);
                 startActivity(intent);
+                break;
+            case R.id.btn_move:
+                mContent.moveToPosition(1);
+
                 break;
             default:
                 break;

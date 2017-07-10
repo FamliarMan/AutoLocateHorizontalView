@@ -56,6 +56,14 @@
         android:layout_marginRight="20dp"
         android:text="删除" />
     <Button
+        android:id="@+id/btn_move"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:text="移动到位置1"
+        />
+    <Button
         android:id="@+id/btn_another_sample"
         android:layout_width="match_parent"
         android:layout_marginLeft="20dp"
