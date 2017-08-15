@@ -8,17 +8,25 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.jianglei.autolocatehorizontalview.MainActivity">
 
-    <View
-        android:layout_width="1dp"
-        android:layout_height="20dp"
-        android:layout_gravity="center"
-        android:background="@color/colorPrimary" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginLeft="20dp"
+        >
+        <View
+            android:layout_width="1dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center"
+            android:background="@color/colorPrimary" />
 
+    </LinearLayout>
     <com.jianglei.view.AutoLocateHorizontalView
         android:id="@+id/recyleview"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginTop="50dp" />
+        android:background="@color/colorAccent"
+        android:layout_marginLeft="20dp"
+        android:layout_height="50dp"/>
 
     <EditText
         android:id="@+id/et_pos"

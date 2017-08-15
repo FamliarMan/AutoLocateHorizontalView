@@ -45,7 +45,7 @@ public class AutoLocateHorizontalView extends RecyclerView {
      */
     private int oldMoveX;
 
-    private boolean isMoveFinished;
+    private boolean isMoveFinished = true;
 
     public AutoLocateHorizontalView(Context context) {
         super(context);
